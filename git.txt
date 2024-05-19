@@ -1,0 +1,53 @@
+GIT COMMANDS
+
+- clone
+- init 
+- add 
+- mv
+- reset 
+- rm
+- log 
+- status
+- branch 
+- checkout
+- commit
+- merge
+- pull
+- push
+
+GIT-CONFIGURATIONS: config 
+	-> $ git config --global user.name "FirstName LastName"
+	-> $ git config --global user.email "your-email-provider.com"
+	
+GIT-STARTING A REPOSITORY: init , checkout 
+	-> $ git init = initialize project to use git
+	-> $ git checkout -b new-branch = create a new branch
+
+GIT-STAGING FILES: add , rm , reset
+	-> $ git add . = add all changes to be saved
+	-> $ git add [filename] [another file name] = add single file to be saved
+	-> $ git add -A
+	-> $ git rm <file-name> = cancellare un file 
+	-> $ git reset <file-name>
+
+GIT-COMMITTING TO A REPOSITORY: commit
+    -> $ git commit 
+        - $ git commit -m "Message" = save changes with message
+    -> git commit --amend = annullamento dei commit
+    
+GIT-PULLING AND PUSHING FROM AND TO REPOSITORIES: pull , push
+    -> $ git pull
+    -> $ git push
+
+GIT-STATUS: status , log 
+    -> $ git status = check status of changes
+	-> $ git log = see all previus saved changes
+
+GESTIONE BRANCH:
+    -> $ git branch = lista dei branches
+    -> $ git branch <nome-branch>
+    -> $ git checkout <nome-btanch> = cambia branch
+    -> $ git checkout master = ritorno al branch originario
+    -> $ git branch -d <nome-branch>
+    
+    
