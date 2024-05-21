@@ -1,11 +1,11 @@
 #include <stdio.h> 
-#include <sys/types.h>
+#include <fcntl.h>      // O_CREAT, O_RDWR
+#include <sys/mman.h>   // shm_open, mmap
+#include <sys/stat.h>   // S_IRUSR, S_IWUSR
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
-
-#define MAXPROCESSES 256
-
+#include <wait.h>
 /*
 COSA DEVE FARE IL MIO PROGRAMMA:
     Dati un file f, un numero n e una stringa s in ingresso:
@@ -17,41 +17,147 @@ COSA DEVE FARE IL MIO PROGRAMMA:
      -per il punto 2) potrei usare sempre una system() per una lettura più rapida del file
 */
 
-int main(int argc, const char * argv[4]){
 
-    // PRIMA PARTE: 
-    // costruisco una matrice n_righe x 1 per i path all'interno dei file
-
+char ** get_matrice(const char * file, int * righe){
     char **matrice_path = malloc(sizeof(char *));
-    int righe = 0;
+    if(matrice_path == NULL){printf("Errore durante allocazione 1"); exit(1);}
     char path[1024];
-    printf("File: %s\n", argv[1]);
-    FILE *fp = fopen(argv[1], "r");
+
+    FILE *fp = fopen(file, "r");
 
     if (fp == NULL) {
         printf("Errore durante l'apertura del file.\n");
-        return 1;
+        exit(1);
     }
-    while (fgets(path, 1024, fp) != NULL) {
-        righe++;
-        matrice_path = realloc(matrice_path, sizeof(char *) * righe);
-        int lunghezza = strlen(path);
 
+    while (fgets(path, 1024, fp) != NULL) {
+        path[strcspn(path, "\n")] = 0; 
+        // Ignora le righe vuote
+        if (strlen(path) == 0) {
+            continue;
+        }
+        
+        (*righe)++;
+        int lunghezza = strlen(path); // Lunghezza path per l'allocazione dinamica su matrice_path
+        // realloca la matrice per aggiungere una riga
+        matrice_path = realloc(matrice_path, (*righe) * sizeof(char *)); 
         if (matrice_path == NULL) {
             printf("Errore durante la riallocazione della memoria.\n");
-            return 1;
+            exit(1);
         }
-
-        matrice_path[righe - 1] = malloc(lunghezza);
-        strcpy(matrice_path[righe - 1], path);
-        printf("Path: %s", matrice_path[righe - 1]);
-        
+        // allocazione di una singola riga
+        matrice_path[(*righe) - 1] = malloc(lunghezza);
+        strcpy(matrice_path[(*righe) - 1], path);
+        // NOTA: il numero di righe è una in più perchè viene letta anche l'ultima riga vuota del file, che non contiene dati
     }
-    righe--;
+    (*righe);
     fclose(fp);
+    return matrice_path;
+}
+
+int main(int argc, const char * argv[4]){
+
+    // PRIMA PARTE: 
+    // Costruisco una matrice n_righe x 1 per salvarmi i path all'interno dei file
+    // Sarebbe meglio costruirla però su una zona di memoria condivisa solo con i figli (anonima) 
+    // (altrimetni ogni figlio avrebbe una copia della matrice nello stack
+    //      1. ridondante
+    //      2. consumo eccessivo di memoria; )
+    // -> MA TROPPO COMPLICATO, SARA' per una prossima volta
+
+    int righe = 0;
+    char ** matrice_path = get_matrice(argv[1], &righe);  
+
+    // printf("Righe: %d\n", righe);
+    /* for (int i = 0; i < righe; i++){
+        printf("Path: %s\n", matrice_path[i]);
+    }*/
+    // printf("Path: %s\n", matrice_path[3]);
+
+/**************************************************************************************/
+
+
 
     // SECONDA PARTE:
-    // faccio i processi figli e gli assegno i comandi da eseguire
+    // Faccio i processi figli e gli assegno i comandi da eseguire
+
+    int numero_processi = atoi(argv[2]); 
+    int num_CperProcess = righe/numero_processi;
+    int proc_eccesso = righe % numero_processi;
+    int status;
+    pid_t pid = getpid();
+    
+    // Creazione processi figli
+    for(int i = 0; i < numero_processi; i++){
+        if(pid != 0){ // Padre
+            fork();
+        }
+        else { // Figli
+            /* Legge num_CperProcess, li salva, converte la stringa in comando, la usa con system
+            */
+           // Calcola la lunghezza della nuova stringa
+
+
+        // FINIRE DA QUI (FARE CICLO FOR PER LEGGERE COMANDI)
+
+        char * string = 
+        
+        size_t new_length = strlen(placeholder) + strlen(path) - 1; // -1 per sostituire '%'
+        
+        // Alloca memoria per la nuova stringa
+        char *command = malloc(new_length + 1); // +1 per il terminatore null
+        if (command == NULL) {
+            perror("malloc");
+            return 1;
+        }
+        
+        // Trova la posizione del segnaposto '%'
+        const char *percent_pos = strchr(placeholder, '%');
+        if (percent_pos == NULL) {
+            fprintf(stderr, "Segnaposto '%' non trovato nella stringa.\n");
+            free(command);
+            return 1;
+        }
+        
+        // Copia la parte prima del segnaposto
+        size_t prefix_length = percent_pos - placeholder;
+        strncpy(command, placeholder, prefix_length);
+        command[prefix_length] = '\0';
+        
+        // Aggiungi il percorso
+        strcat(command, path);
+        
+        // Aggiungi la parte dopo il segnaposto (se esiste)
+        strcat(command, percent_pos + 1);
+
+        // Stampa il comando risultante
+        printf("Comando: %s\n", command);
+            }
+            
+        }
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
