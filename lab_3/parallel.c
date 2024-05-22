@@ -103,6 +103,7 @@ char ** get_matrice(const char * file, int * righe, const char * stringa){
         matrice_path[(*righe) - 1] = malloc(lunghezza);
         strcpy(matrice_path[(*righe) - 1], comando);
         // NOTA: il numero di righe è una in più perchè viene letta anche l'ultima riga vuota del file, che non contiene dati
+        free(comando);
     }
     (*righe);
     fclose(fp);
@@ -112,7 +113,7 @@ char ** get_matrice(const char * file, int * righe, const char * stringa){
 int main(int argc, const char * argv[4]){
 
     // PRIMA PARTE: 
-    // Costruisco una matrice n_righe x 1 per salvarmi i path all'interno dei file
+    // Costruisco una matrice n_righe x 1 per salvarmi i comandi all'interno dei file
     // Sarebbe meglio costruirla però su una zona di memoria condivisa solo con i figli (anonima) 
     // (altrimetni ogni figlio avrebbe una copia della matrice nello stack
     //      1. ridondante
@@ -148,7 +149,6 @@ int main(int argc, const char * argv[4]){
     for(int i = 0; i < numero_processi; i++){
         pid = fork();
         if(pid != 0){ // Padre
-            // Il codice qui viene eseguito solo nel processo padre
             wait(&status);
         }
         else if(pid == 0) { // Figli
