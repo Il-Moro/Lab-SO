@@ -18,10 +18,51 @@ COSA DEVE FARE IL MIO PROGRAMMA:
 */
 
 
-char ** get_matrice(const char * file, int * righe){
+char * get_comando(const char * path, const char * stringa){
+
+    //printf("********************************\n");
+    // Calcola la lunghezza della nuova stringa
+    int new_length = strlen(path) + strlen(stringa); // -1 per sostituire '%'
+    // Alloca memoria per la nuova stringa
+
+    //printf("%d\n", new_length);
+
+    //printf("********************************\n");
+
+    char * comando = malloc(new_length + 1); // +1 per il terminatore null
+    if (comando == NULL) {
+        perror("malloc");
+        exit(1);
+    }
+    // Trova la posizione del segnaposto '%'
+
+    //printf("********************************\n");
+
+    char * perc_pos = strstr(stringa, "%");
+    if (perc_pos == NULL) {
+        fprintf(stderr, "Segnaposto '%' non trovato nella stringa.\n");
+        free(comando);
+        exit(1);
+    }
+    // Copia la parte prima del segnaposto
+    size_t prefix_length = perc_pos - stringa;
+    strncpy(comando, stringa, prefix_length);
+    comando[prefix_length] = '\0';
+    // Aggiungi il percorso
+    strcat(comando, path);
+    // Aggiungi la parte dopo il segnaposto (se esiste)
+    strcat(comando, perc_pos + 1);
+    //printf("Comando: %s\n", comando);
+    return comando;
+}
+
+
+char ** get_matrice(const char * file, int * righe, const char * stringa){
+    // printf("%s\n", stringa);
     char **matrice_path = malloc(sizeof(char *));
     if(matrice_path == NULL){printf("Errore durante allocazione 1"); exit(1);}
-    char path[1024];
+    char path[1025];
+    char * comando;
 
     FILE *fp = fopen(file, "r");
 
@@ -30,15 +71,28 @@ char ** get_matrice(const char * file, int * righe){
         exit(1);
     }
 
+    //printf("********************************\n");
+
     while (fgets(path, 1024, fp) != NULL) {
         path[strcspn(path, "\n")] = 0; 
         // Ignora le righe vuote
         if (strlen(path) == 0) {
             continue;
         }
+
+        //int lenght = strlen(path);
+        //printf("lunghezza: %d\n", lenght);
+
+        //int lenght1 = strlen(stringa);
+        //printf("lunghezza: %d\n", lenght1);
+
+
+        comando = get_comando(path, stringa);
+
+        //printf("********************************\n");
         
         (*righe)++;
-        int lunghezza = strlen(path); // Lunghezza path per l'allocazione dinamica su matrice_path
+        int lunghezza = strlen(comando); // Lunghezza path per l'allocazione dinamica su matrice_path
         // realloca la matrice per aggiungere una riga
         matrice_path = realloc(matrice_path, (*righe) * sizeof(char *)); 
         if (matrice_path == NULL) {
@@ -47,7 +101,7 @@ char ** get_matrice(const char * file, int * righe){
         }
         // allocazione di una singola riga
         matrice_path[(*righe) - 1] = malloc(lunghezza);
-        strcpy(matrice_path[(*righe) - 1], path);
+        strcpy(matrice_path[(*righe) - 1], comando);
         // NOTA: il numero di righe è una in più perchè viene letta anche l'ultima riga vuota del file, che non contiene dati
     }
     (*righe);
@@ -66,13 +120,16 @@ int main(int argc, const char * argv[4]){
     // -> MA TROPPO COMPLICATO, SARA' per una prossima volta
 
     int righe = 0;
-    char ** matrice_path = get_matrice(argv[1], &righe);  
+    char ** matrice_path = get_matrice(argv[1], &righe, argv[3]);  
 
     // printf("Righe: %d\n", righe);
-    /* for (int i = 0; i < righe; i++){
+    // STAMPA MATRICE COMPLETA  
+    /*for (int i = 0; i < righe; i++){
         printf("Path: %s\n", matrice_path[i]);
     }*/
     // printf("Path: %s\n", matrice_path[3]);
+
+
 
 /**************************************************************************************/
 
@@ -85,83 +142,30 @@ int main(int argc, const char * argv[4]){
     int num_CperProcess = righe/numero_processi;
     int proc_eccesso = righe % numero_processi;
     int status;
-    pid_t pid = getpid();
+    pid_t pid;
     
     // Creazione processi figli
     for(int i = 0; i < numero_processi; i++){
+        pid = fork();
         if(pid != 0){ // Padre
-            fork();
+            // Il codice qui viene eseguito solo nel processo padre
+            wait(&status);
         }
-        else { // Figli
-            /* Legge num_CperProcess, li salva, converte la stringa in comando, la usa con system
+        else if(pid == 0) { // Figli
+            /*Legge num_CperProcess, li salva, converte la stringa in comando, la usa con system
             */
-           // Calcola la lunghezza della nuova stringa
-
-
-        // FINIRE DA QUI (FARE CICLO FOR PER LEGGERE COMANDI)
-
-        char * string = 
-        
-        size_t new_length = strlen(placeholder) + strlen(path) - 1; // -1 per sostituire '%'
-        
-        // Alloca memoria per la nuova stringa
-        char *command = malloc(new_length + 1); // +1 per il terminatore null
-        if (command == NULL) {
-            perror("malloc");
-            return 1;
-        }
-        
-        // Trova la posizione del segnaposto '%'
-        const char *percent_pos = strchr(placeholder, '%');
-        if (percent_pos == NULL) {
-            fprintf(stderr, "Segnaposto '%' non trovato nella stringa.\n");
-            free(command);
-            return 1;
-        }
-        
-        // Copia la parte prima del segnaposto
-        size_t prefix_length = percent_pos - placeholder;
-        strncpy(command, placeholder, prefix_length);
-        command[prefix_length] = '\0';
-        
-        // Aggiungi il percorso
-        strcat(command, path);
-        
-        // Aggiungi la parte dopo il segnaposto (se esiste)
-        strcat(command, percent_pos + 1);
-
-        // Stampa il comando risultante
-        printf("Comando: %s\n", command);
+            // Calcola la lunghezza della nuova stringa
+            for(int j = i * num_CperProcess; j < righe; j++ ){
+                system(matrice_path[j]);
             }
-            
+            exit(0); // Importante: termina il processo figlio dopo aver eseguito i comandi
         }
-    
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        else {
+            // Gestione dell'errore di fork
+            perror("fork");
+            exit(1);
+        }
+    }    
 
     for (int i = 0; i < righe; i++) {
         free(matrice_path[i]);
