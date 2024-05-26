@@ -69,7 +69,7 @@ sem_t ** get_sem(int righe, char ** DB_vetture){
     for (int i = 0; i < righe; i++){
         char name[256];
         snprintf(name, (5 + strlen(DB_vetture[i]) + 1), "/sem_%s", DB_vetture[i]);
-        semaphores[i] = sem_open(name, O_CREAT, S_IRUSR | S_IWUSR, 0);
+        semaphores[i] = sem_open(name, O_CREAT, S_IRUSR | S_IWUSR, 1);
     }
     return semaphores;
 }
