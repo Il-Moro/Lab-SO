@@ -93,6 +93,7 @@ int main(){
         }
         arg_a = strtok(comando," ");
         arg_b = strtok(NULL, " ");
+        
         if(strcmp(arg_a, "view") == 0){
             for(int i = 0; i < righe; i ++){
                 int value;
@@ -108,16 +109,12 @@ int main(){
                 int flag = 0;
                 for(int i = 0; i < righe; i++){
                     if(strcmp(arg_b, DB_vetture[i]) == 0){
-                        int value;
-                        sem_getvalue(semaphores[i], &value);
-                        if(value == 0){
-                            flag = 1;
-                            printf("Error: Car %s already locked\n", DB_vetture[i]);
-                            break;
-                        } else if(value == 1){
-                            flag = 1;
-                            sem_wait(semaphores[i]);
+                        flag = 1;
+                        if(sem_trywait(semaphores[i]) == 0){
                             printf("Car: %s is now locked\n");
+                            break;
+                        } else {
+                            printf("Error: Car %s already locked\n", DB_vetture[i]);
                             break;
                         }
                     }
@@ -132,17 +129,14 @@ int main(){
                 int flag = 0;
                 for(int i = 0; i < righe; i++){
                     if(strcmp(arg_b, DB_vetture[i]) == 0){
-                        int value;
-                        sem_getvalue(semaphores[i], &value);
-                        if(value == 1){
+                        flag = 1;
+                        if(sem_post(semaphores[i]) == 0){
                             flag = 1;
-                            printf("Error: Car %s already free\n", DB_vetture[i]);
-                            break;
-                        } else if(value == 0){
-                            flag = 1;
-                            sem_post(semaphores[i]);
                             printf("Car: %s is now free\n", DB_vetture[i]);
-                            break;
+                            continue;
+                        } else {
+                            printf("Error: Car %s already free\n", DB_vetture[i]);
+                            continue;
                         }
                     }
                 }
@@ -151,7 +145,7 @@ int main(){
         } else if(strcmp(arg_a, "quit") == 0){
             return 0;
         } else{
-            printf("No Command\n");
+            printf("Unknown Command\n");
         }
     }
     for(int i = 0; i < righe; i++){
