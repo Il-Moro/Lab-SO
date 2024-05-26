@@ -114,7 +114,7 @@ int main(){
                             printf("Car: %s is now locked\n");
                             break;
                         } else {
-                            printf("Error: Car %s already locked\n", DB_vetture[i]);
+                            printf("Error. Car %s already locked\n", DB_vetture[i]);
                             break;
                         }
                     }
@@ -130,12 +130,14 @@ int main(){
                 for(int i = 0; i < righe; i++){
                     if(strcmp(arg_b, DB_vetture[i]) == 0){
                         flag = 1;
-                        if(sem_post(semaphores[i]) == 0){
-                            flag = 1;
+                        int value;
+                        sem_getvalue(semaphores[i], &value);
+                        if(value == 0){
+                            sem_post(semaphores[i]);
                             printf("Car: %s is now free\n", DB_vetture[i]);
                             continue;
-                        } else {
-                            printf("Error: Car %s already free\n", DB_vetture[i]);
+                        } else if (value == 1){
+                            printf("Error. Car %s already free\n", DB_vetture[i]);
                             continue;
                         }
                     }
