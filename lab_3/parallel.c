@@ -57,59 +57,15 @@ char * get_comando(const char * path, const char * stringa){
 }
 
 
-char ** get_matrice(const char * file, int * righe, const char * stringa){
-    // printf("%s\n", stringa);
-    char **matrice_path = malloc(sizeof(char *));
-    if(matrice_path == NULL){printf("Errore durante allocazione 1"); exit(1);}
-    char path[1025];
-    char * comando;
-
+int get_righe(){
+    int righe = 0;
     FILE *fp = fopen(file, "r");
-
-    if (fp == NULL) {
-        printf("Errore durante l'apertura del file.\n");
-        exit(1);
+    char * vett;
+    while(fscanf(f, "%s", vett) != EOF){
+        righe++;
     }
-
-    //printf("********************************\n");
-
-    while (fgets(path, 1024, fp) != NULL) {
-        path[strcspn(path, "\n")] = 0; 
-        // Ignora le righe vuote
-        if (strlen(path) == 0) {
-            continue;
-        }
-
-        //int lenght = strlen(path);
-        //printf("lunghezza: %d\n", lenght);
-
-        //int lenght1 = strlen(stringa);
-        //printf("lunghezza: %d\n", lenght1);
-
-
-        comando = get_comando(path, stringa);
-
-        //printf("********************************\n");
-        
-        (*righe)++;
-        int lunghezza = strlen(comando); // Lunghezza path per l'allocazione dinamica su matrice_path
-        // realloca la matrice per aggiungere una riga
-        matrice_path = realloc(matrice_path, (*righe) * sizeof(char *)); 
-        if (matrice_path == NULL) {
-            printf("Errore durante la riallocazione della memoria.\n");
-            exit(1);
-        }
-        // allocazione di una singola riga
-        matrice_path[(*righe) - 1] = malloc(lunghezza);
-        strcpy(matrice_path[(*righe) - 1], comando);
-        // NOTA: il numero di righe è una in più perchè viene letta anche l'ultima riga vuota del file, che non contiene dati
-        free(comando);
-    }
-    (*righe);
-    fclose(fp);
-    return matrice_path;
+    return righe;
 }
-
 int main(int argc, const char * argv[4]){
 
     // PRIMA PARTE: 
