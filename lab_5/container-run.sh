@@ -28,8 +28,11 @@ if [[ -f $config_file ]]; then
     mkdir -p "$tmp"
 
     # Legge il file riga per riga
-    while IFS= read -r riga; do
-        read -r path_1 path_2 <<< "$riga"
+    IFS=$'\n'
+    for line in $(cat $config_file)
+    do
+        path_1=$(echo $line | cut -d " " -f 1)
+        path_2=$(echo $line | cut -d " " -f 2)
         path_2="$tmp$path_2"
         
         # Controlla se path_1 è una directory
@@ -63,7 +66,3 @@ else
     echo "Il primo argomento deve essere un file."
     exit 1
 fi
-
-
-
-# chroot /path/to/new/root command
