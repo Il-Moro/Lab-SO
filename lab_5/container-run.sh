@@ -10,8 +10,8 @@
 
 tmp="/tmp/lab_5"
 
-if [[ $# -ne 2 ]]; then
-    echo "Uso: $0 <file_di_configurazione> <comando>"
+if [[ $# < 2 ]]; then
+    echo "Uso: $0 <file_di_configurazione> <comandi>"
     exit 1
 fi
 
@@ -50,7 +50,7 @@ if [[ -f $config_file ]]; then
     done < "$config_file"
 
     # Esegue il comando in ambiente fakechroot
-    fakechroot chroot "$tmp" "$command"
+    (( $# == 2 )) && fakechroot chroot "$tmp" "$command" || fakechroot chroot "$tmp" "$command" "${@:3}"
 
     # Smonta tutti i bind mounts e pulisce la directory temporanea
     #echo "Smontaggio dei bind mounts e pulizia della directory temporanea"
