@@ -36,6 +36,9 @@ if [[ -f $config_file ]]; then
         if [[ -d $path_1 ]]; then 
             mkdir -p "$path_2" # Crea la directory di destinazione
             bindfs --no-allow-other "$path_1" "$path_2"
+            if [[ $? -ne 0 ]]; then
+                echo "Errore nel montaggio di $path_1 su $path_2"
+            fi
         
         # Controlla se path_1 è un file regolare o un character device
         elif [[ -f $path_1 || -c $path_1 ]]; then
@@ -52,6 +55,7 @@ if [[ -f $config_file ]]; then
     fakechroot chroot "$tmp" "$command"
 
     # Smonta tutti i bind mounts e pulisce la directory temporanea
+    # echo "Smontaggio dei bind mounts e pulizia della directory temporanea"
     # find "$tmp" -type d | sort -r | xargs -I {} umount {}
     # rm -rf "$tmp"
 
